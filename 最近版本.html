@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>点单系统 (选中全色填充)</title>
+<style>
+  body { font-family: "微软雅黑", sans-serif; margin: 0; padding: 0; background: #f8f8f8; }
+  .container { max-width: 500px; margin: 0 auto; background: #fff; display: flex; flex-direction: column; height: 100vh; }
+  .orders-section { flex: 1; overflow-y: auto; padding: 5px; }
+  .order-item { display: flex; align-items: center; justify-content: center; padding: 3px 5px; background: #f9f9f9; margin-bottom: 2px; border-radius: 5px; position: relative; min-height: 32px; }
+  .order-item.history { background: #e8f5e9; }
+  .order-item.current { background: #f9f9f9; }
+  
+  .noodles-wrapper { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    width: 100%;
+    padding: 0 5px;
+  }
+  .noodles { 
+    font-size: 1.1em; 
+    font-weight: bold; 
+    letter-spacing: 5px; 
+    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .type-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-right: 5px;
+  }
+  .type-tang { background-color: #2E7D32; color: white; }
+  .type-wai { background-color: #C62828; color: white; }
+  .type-daobao { background-color: #F57C00; color: white; }
+  .delete-btn { 
+    position: absolute; 
+    top: 50%; 
+    right: 2px; 
+    transform: translateY(-50%);
+    font-size: 1.3em; 
+    background: none; 
+    border: none; 
+    color: #ff4444; 
+    cursor: pointer; 
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* 界面容器：P1/P2切换 */
+  .panel-container { flex-shrink: 0; padding: 6px 8px 8px 8px; background: #fff; border-top: 1px solid #eee; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  
+  /* P1界面：订单类型按钮核心修改 - 选中全色填充 */
+  .eat-group { display: flex; gap: 8px; margin-bottom: 6px; }
+  .eat-btn { 
+    flex: 1; 
+    height: 60px; 
+    border-radius: 50%; 
+    font-size: 1.3em; 
+    font-weight: bold; 
+    border: none; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: all 0.2s ease; /* 切换动画更流畅 */
+  }
+  /* 未选中状态：白底+对应颜色文字，清晰区分 */
+  .eat-tang { background: white; color: #4CAF50; }
+  .eat-wai { background: white; color: #f44336; }
+  .eat-daobao { background: white; color: #FFEB3B; }
+  /* 选中状态：全色填充（背景=文字色），加阴影放大 */
+  .eat-btn.active { 
+    box-shadow: 0 0 10px rgba(0,0,0,0.4); 
+    transform: scale(1.08); 
+    color: white; /* 选中后文字变白，在纯色背景上更醒目 */
+  }
+  .eat-tang.active { background: #4CAF50; } /* 堂食选中全绿 */
+  .eat-wai.active { background: #f44336; } /* 外卖选中全红 */
+  .eat-daobao.active { background: #FFEB3B; color: black; } /* 打包选中全黄，文字黑更清晰 */
+  
+  .noodle-type-group { display: flex; gap: 15px; margin-bottom: 10px; justify-content: center; }
+  .noodle-type-btn { 
+    width: 120px; height: 50px; border-radius: 25px; font-size: 1.2em; font-weight: bold; border: none;
+    background: #e0e0e0; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .noodle-type-btn.active { background: #4CAF50; color: white; box-shadow: 0 0 8px rgba(76, 175, 80, 0.5); }
+  
+  .quantity-control { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; justify-content: center; }
+  .quantity-btn { width: 45px; height: 45px; font-size: 1.5em; background: #2196F3; color: white; border: none; border-radius: 50%; cursor: pointer; }
+  .quantity-display { font-size: 1.8em; min-width: 50px; text-align: center; font-weight: bold; color: #333; }
+  
+  /* P2界面样式 */
+  .option-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px; 
+    margin-bottom: 12px; 
+    padding-top: 5px; 
+  }
+  .option-btn { 
+    height: 50px; 
+    border-radius: 25px; 
+    font-size: 1.1em; 
+    font-weight: bold; 
+    border: none;
+    background: #e0e0e0; 
+    color: #333; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+  }
+  .option-btn.water-btn {
+    grid-column: span 2; 
+    width: 80%;
+    margin: 0 auto; 
+  }
+  .option-btn.active { background: #FF9800; color: white; box-shadow: 0 0 8px rgba(255, 152, 0, 0.5); }
+  
+  /* 通用操作按钮 */
+  .action-buttons { display: flex; gap: 8px; margin-top: 5px; }
+  .action-buttons button { flex: 1; padding: 10px; font-size: 1em; color: white; border: none; border-radius: 8px; font-weight: bold; }
+  .next-btn, .add-btn { background: #4CAF50; }
+  .back-btn, .clear-btn { background: #f44336; }
+  .skip-btn { background: #2196F3; }
+  
+  .db-status { 
+    position: fixed; bottom: 2px; left: 2px; background: rgba(0,0,0,0.6); color: white; 
+    padding: 1px 4px; font-size: 0.55em; border-radius: 2px; z-index: 1000;
+    max-width: 120px; overflow: hidden; white-space: nowrap;
+  }
+  .status-connecting { color: #FFA500; }
+  .status-connected { color: #4CAF50; }
+  .status-error { color: #f44336; }
+  
+  .order-time {
+    position: absolute; bottom: 2px; left: 5px; font-size: 0.6em; color: #999;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="orders-section" id="orderList"></div>
+  
+  <!-- 界面容器：P1/P2 -->
+  <div class="panel-container">
+    <!-- P1界面：订单类型按钮选中全色填充 -->
+    <div class="panel active" id="panel1">
+      <div class="eat-group">
+        <button class="eat-btn eat-tang active" data-value="堂食">堂食</button>
+        <button class="eat-btn eat-wai" data-value="外卖">外卖</button>
+        <button class="eat-btn eat-daobao" data-value="打包">打包</button>
+      </div>
+      
+      <div class="noodle-type-group">
+        <button class="noodle-type-btn" id="wideBtn" data-type="wide">宽面</button>
+        <button class="noodle-type-btn" id="narrowBtn" data-type="narrow">细面</button>
+      </div>
+      
+      <div class="quantity-control">
+        <button class="quantity-btn" onclick="changeQuantity(-1)">−</button>
+        <div class="quantity-display" id="quantity">1</div>
+        <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="clear-btn" onclick="clearOrders()">清空</button>
+        <button class="add-btn" onclick="addOrderFromP1()">直接提交</button>
+        <button class="next-btn" onclick="goToPanel2()">下一项</button>
+      </div>
+    </div>
+    
+    <!-- P2界面：保持不变 -->
+    <div class="panel" id="panel2">
+      <div class="option-grid">
+        <button class="option-btn" data-option="less-noodle-more-veg" data-label="少面多菜">少面多菜</button>
+        <button class="option-btn" data-option="add-noodle" data-label="加面">加面</button>
+        <button class="option-btn" data-option="kelp" data-label="海带">海带</button>
+        <button class="option-btn" data-option="fish-tofu" data-label="鱼豆腐">鱼豆腐</button>
+        <button class="option-btn water-btn" data-option="water-pass" data-label="过水">过水</button>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="back-btn" onclick="goToPanel1()">返回</button>
+        <button class="skip-btn" onclick="goToPanel1()">跳过</button>
+        <button class="add-btn" onclick="addOrderFromP2()">提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="db-status" id="dbStatus">
+  <span id="statusText">正在连接...</span>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://jfaxvecohlmgbscebujq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmYXh2ZWNvaGxtZ2JzY2VidWpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODA0NDAsImV4cCI6MjA4MTU1NjQ0MH0.jW0SSkeiNqoDN8ywe45lnaDEnw6X3BUjcjfhxsnxy04';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// 全局状态
+let currentOrderType = "堂食";
+let selectedNoodleTypes = [];
+let currentQuantity = 1;
+let noodleQtyCache = {};
+let currentEditNoodle = null;
+let selectedAddons = [];
+let isDbConnected = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initPage();
+  bindNoodleBtnEvent();
+  bindOrderTypeEvent();
+  bindAddonBtnEvent();
+});
+
+// 数据库基础功能（不变）
+async function checkDbConnection() {
+  const statusElem = document.getElementById('statusText');
+  try {
+    statusElem.textContent = "连接中...";
+    statusElem.className = "status-connecting";
+    const { data } = await supabase.from('orders').select('id').limit(1);
+    statusElem.textContent = "✓ 已连接";
+    statusElem.className = "status-connected";
+    isDbConnected = true;
+  } catch (err) {
+    statusElem.textContent = "连接失败";
+    statusElem.className = "status-error";
+    isDbConnected = false;
+  }
+}
+
+async function syncOrderToDb(orderData) {
+  if (!isDbConnected) {
+    updateDbStatus("保存失败（未联网）", "error");
+    return null;
+  }
+  try {
+    orderData.created_at = new Date().toISOString();
+    const { data, error } = await supabase.from('orders').insert([orderData]).select();
+    if (error) throw error;
+    updateDbStatus("已保存", "connected");
+    return data[0];
+  } catch (err) {
+    updateDbStatus("保存失败", "error");
+    return null;
+  }
+}
+
+async function loadRecentOrders() {
+  if (!isDbConnected) return [];
+  try {
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data } = await supabase
+      .from('orders')
+      .select('*')
+      .gte('created_at', fiveMinsAgo)
+      .order('created_at', false);
+    return data || [];
+  } catch (err) {
+    return [];
+  }
+}
+
+// 界面切换逻辑（不变）
+function goToPanel2() {
+  if (selectedNoodleTypes.length === 0) {
+    alert("请先选择宽面或细面");
+    return;
+  }
+  selectedAddons = [];
+  document.querySelectorAll('.option-btn.active').forEach(btn => btn.classList.remove('active'));
+  
+  document.getElementById('panel1').classList.remove('active');
+  document.getElementById('panel2').classList.add('active');
+}
+
+function goToPanel1() {
+  document.getElementById('panel2').classList.remove('active');
+  document.getElementById('panel1').classList.add('active');
+}
+
+// P2附加项按钮绑定（不变）
+function bindAddonBtnEvent() {
+  document.querySelectorAll('.option-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const option = e.target.dataset.option;
+      const label = e.target.dataset.label;
+      const isActive = e.target.classList.contains('active');
+      
+      if (isActive) {
+        e.target.classList.remove('active');
+        selectedAddons = selectedAddons.filter(item => item.option !== option);
+      } else {
+        e.target.classList.add('active');
+        selectedAddons.push({ option, label });
+      }
+    });
+  });
+}
+
+// 面条选择与数量调整（不变）
+function displayOrders(orders) {
+  const orderList = document.getElementById('orderList');
+  orderList.innerHTML = '';
+  orders.forEach(order => {
+    const orderElem = createOrderElement(order, true);
+    orderList.appendChild(orderElem);
+  });
+}
+
+function createOrderElement(order, isHistory) {
+  const orderElem = document.createElement('div');
+  orderElem.className = `order-item ${isHistory ? 'history' : 'current'}`;
+  orderElem.dataset.orderId = order.id || `temp_${Date.now()}`;
+
+  const type = order.order_type || '堂食';
+  const wideQty = order.noodle_type?.wide || 0;
+  const narrowQty = order.noodle_type?.narrow || 0;
+  const addons = order.addons || [];
+  const time = order.created_at ? new Date(order.created_at) : new Date();
+
+  let noodleText = '';
+  if (wideQty > 0) noodleText += '宽'.repeat(wideQty);
+  if (narrowQty > 0) noodleText += '细'.repeat(narrowQty);
+  const addonText = addons.length > 0 ? `（${addons.map(item => item.label).join('+')}）` : '';
+
+  let tagClass = type === '堂食' ? 'type-tang' : type === '外卖' ? 'type-wai' : 'type-daobao';
+  let tagText = type === '堂食' ? '堂' : type === '外卖' ? '外' : '打';
+
+  const timeText = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
+
+  orderElem.innerHTML = `
+    <div class="noodles-wrapper">
+      <div class="noodles">
+        <span class="type-tag ${tagClass}">${tagText}</span>
+        ${noodleText}${addonText}
+      </div>
+      <div class="order-time">${timeText}</div>
+    </div>
+    <button class="delete-btn" onclick="removeOrder(this)">×</button>
+  `;
+  return orderElem;
+}
+
+function changeQuantity(delta) {
+  if (!currentEditNoodle) return;
+  currentQuantity = Math.max(1, currentQuantity + delta);
+  document.getElementById('quantity').textContent = currentQuantity;
+  noodleQtyCache[currentEditNoodle] = currentQuantity;
+}
+
+function resetAllStatus() {
+  // 重置P1面条选择
+  document.querySelectorAll('.noodle-type-btn').forEach(btn => btn.classList.remove('active'));
+  selectedNoodleTypes = [];
+  noodleQtyCache = {};
+  currentQuantity = 1;
+  currentEditNoodle = null;
+  document.getElementById('quantity').textContent = 1;
+  
+  // 重置P2附加项
+  selectedAddons = [];
+  document.querySelectorAll('.option-btn.active').forEach(btn => btn.classList.remove('active'));
+  
+  // 回到P1界面
+  goToPanel1();
+}
+
+// 面条按钮绑定（不变）
+function bindNoodleBtnEvent() {
+  document.querySelectorAll('.noodle-type-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const type = e.target.dataset.type;
+      const isActive = e.target.classList.contains('active');
+      
+      if (isActive) {
+        e.target.classList.remove('active');
+        selectedNoodleTypes = selectedNoodleTypes.filter(t => t !== type);
+        if (currentEditNoodle === type) {
+          currentEditNoodle = selectedNoodleTypes[0] || null;
+          currentQuantity = currentEditNoodle ? noodleQtyCache[currentEditNoodle] || 1 : 1;
+          document.getElementById('quantity').textContent = currentQuantity;
+        }
+        if (selectedNoodleTypes.length === 0) noodleQtyCache = {};
+      } else {
+        e.target.classList.add('active');
+        selectedNoodleTypes.push(type);
+        currentEditNoodle = type;
+        if (!noodleQtyCache[type]) {
+          noodleQtyCache[type] = 1;
+          currentQuantity = 1;
+        } else {
+          currentQuantity = noodleQtyCache[type];
+        }
+        document.getElementById('quantity').textContent = currentQuantity;
+      }
+    });
+  });
+}
+
+// 订单类型按钮绑定（核心：控制选中/未选中全色填充）
+function bindOrderTypeEvent() {
+  document.querySelectorAll('.eat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.eat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentOrderType = btn.dataset.value;
+      resetAllStatus();
+    });
+  });
+}
+
+// P1直接提交（不变）
+async function addOrderFromP1() {
+  if (selectedNoodleTypes.length === 0) {
+    alert("请先选择宽面或细面");
+    return;
+  }
+
+  const orderData = {
+    order_type: currentOrderType,
+    noodle_type: {
+      wide: noodleQtyCache.wide || 0,
+      narrow: noodleQtyCache.narrow || 0
+    },
+    addons: [],
+    display_text: `${currentOrderType} ${noodleQtyCache.wide ? '宽'.repeat(noodleQtyCache.wide) : ''}${noodleQtyCache.narrow ? '细'.repeat(noodleQtyCache.narrow) : ''}`
+  };
+
+  const tempOrder = { ...orderData, created_at: new Date().toISOString() };
+  const orderElem = createOrderElement(tempOrder, false);
+  document.getElementById('orderList').appendChild(orderElem);
+  orderElem.scrollIntoView({ behavior: 'smooth' });
+
+  const dbOrder = await syncOrderToDb(orderData);
+  if (dbOrder?.id) {
+    orderElem.dataset.orderId = dbOrder.id;
+  }
+
+  resetAllStatus();
+}
+
+// P2提交（不变）
+async function addOrderFromP2() {
+  if (selectedNoodleTypes.length === 0) {
+    alert("请先在P1选择宽面或细面");
+    goToPanel1();
+    return;
+  }
+
+  const orderData = {
+    order_type: currentOrderType,
+    noodle_type: {
+      wide: noodleQtyCache.wide || 0,
+      narrow: noodleQtyCache.narrow || 0
+    },
+    addons: selectedAddons,
+    display_text: `${currentOrderType} ${noodleQtyCache.wide ? '宽'.repeat(noodleQtyCache.wide) : ''}${noodleQtyCache.narrow ? '细'.repeat(noodleQtyCache.narrow) : ''}（${selectedAddons.map(item => item.label).join('+')}）`
+  };
+
+  const tempOrder = { ...orderData, created_at: new Date().toISOString() };
+  const orderElem = createOrderElement(tempOrder, false);
+  document.getElementById('orderList').appendChild(orderElem);
+  orderElem.scrollIntoView({ behavior: 'smooth' });
+
+  const dbOrder = await syncOrderToDb(orderData);
+  if (dbOrder?.id) {
+    orderElem.dataset.orderId = dbOrder.id;
+  }
+
+  resetAllStatus();
+}
+
+// 辅助函数（不变）
+function clearOrders() {
+  document.getElementById('orderList').innerHTML = '';
+  updateDbStatus("已清空", "info");
+}
+
+function removeOrder(button) {
+  button.parentElement.remove();
+  updateDbStatus("已移除", "info");
+}
+
+function updateDbStatus(message, type) {
+  const statusElem = document.getElementById('statusText');
+  statusElem.textContent = message;
+  statusElem.className = `status-${type}`;
+  setTimeout(async () => await checkDbConnection(), 2000);
+}
+
+async function initPage() {
+  await checkDbConnection();
+  if (isDbConnected) {
+    const recentOrders = await loadRecentOrders();
+    displayOrders(recentOrders);
+    updateDbStatus(`已加载${recentOrders.length}单`, "info");
+  }
+  setInterval(checkDbConnection, 30000);
+  setInterval(async () => {
+    if (isDbConnected) {
+      const recentOrders = await loadRecentOrders();
+      displayOrders(recentOrders);
+    }
+  }, 60000);
+}
+</script>
+</body>
+</html>
