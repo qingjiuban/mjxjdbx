@@ -8,11 +8,11 @@
   body { font-family: "微软雅黑", sans-serif; margin: 0; padding: 0; background: #f8f8f8; }
   .container { max-width: 500px; margin: 0 auto; background: #fff; display: flex; flex-direction: column; height: 100vh; }
 
-  /* 订单列表 - 缩小宽度 */
+  /* 订单列表 */
   .orders-section { flex: 1; overflow-y: auto; padding: 5px; }
   .order-item { display: flex; align-items: center; justify-content: center; padding: 3px 5px; background: #f9f9f9; margin-bottom: 2px; border-radius: 5px; position: relative; min-height: 32px; }
   
-  /* 订单文本 - 缩小字体和间距 */
+  /* 订单文本 */
   .noodles-wrapper { 
     display: flex; 
     justify-content: center; 
@@ -45,15 +45,15 @@
   
   /* 不同类型标签的颜色 */
   .type-tang {
-    background-color: #2E7D32; /* 更深的绿色 */
+    background-color: #2E7D32;
     color: white;
   }
   .type-wai {
-    background-color: #C62828; /* 更深的红色 */
+    background-color: #C62828;
     color: white;
   }
   .type-daobao {
-    background-color: #F57C00; /* 更深的橙色 */
+    background-color: #F57C00;
     color: white;
   }
 
@@ -74,39 +74,111 @@
     justify-content: center;
   }
 
-  /* 输入区 - 减小padding，让按钮往上提 */
+  /* 输入区 */
   .input-section { 
     flex-shrink: 0; 
-    padding: 6px 8px 8px 8px; /* 上边距减小 */
+    padding: 6px 8px 8px 8px;
     background: #fff; 
     border-top: 1px solid #eee; 
   }
 
-  /* 堂食/外卖/打包 */
-  .eat-group { display: flex; gap: 8px; margin-bottom: 6px; } /* 减少下边距 */
-  .eat-btn { flex: 1; height: 60px; border-radius: 50%; font-size: 1.3em; font-weight: bold; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .eat-btn.active { box-shadow: 0 0 10px rgba(0,0,0,0.4); transform: scale(1.08); }
+  /* 堂食/外卖/打包 - 按钮样式 */
+  .eat-group { display: flex; gap: 8px; margin-bottom: 6px; }
+  .eat-btn { 
+    flex: 1; 
+    height: 60px; 
+    border-radius: 50%; 
+    font-size: 1.3em; 
+    font-weight: bold; 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: all 0.2s;
+  }
+  .eat-btn.active { 
+    box-shadow: 0 0 12px rgba(0,0,0,0.5); 
+    transform: scale(1.05);
+  }
   .eat-tang { background: #4CAF50; }
   .eat-wai { background: #f44336; }
   .eat-daobao { background: #FFEB3B; color: black; }
 
-  /* 宽面/细面 */
-  .noodle-group { display: flex; gap: 10px; margin-bottom: 6px; } /* 减少下边距 */
-  .noodle-btn { flex: 1; height: 60px; border-radius: 50%; font-size: 1.3em; border: 3px solid #ddd; background: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-  .noodle-btn.active { border-color: #4CAF50; background: #f0fff0; transform: scale(1.08); }
+  /* 宽面/细面 - 简化按钮样式（没有边框，直接加深颜色） */
+  .noodle-group { display: flex; gap: 10px; margin-bottom: 6px; }
+  .noodle-btn { 
+    flex: 1; 
+    height: 60px; 
+    border-radius: 50%; 
+    font-size: 1.3em; 
+    font-weight: bold; 
+    border: none; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  /* 默认状态 - 浅色 */
+  .noodle-wide { 
+    background: rgba(76, 175, 80, 0.3); /* 浅绿色 */
+    color: #2E7D32; /* 深绿色文字 */
+  }
+  .noodle-narrow { 
+    background: rgba(33, 150, 243, 0.3); /* 浅蓝色 */
+    color: #1565C0; /* 深蓝色文字 */
+  }
+  /* 选中状态 - 颜色加深，有阴影 */
+  .noodle-wide.active { 
+    background: #4CAF50; /* 深绿色 */
+    color: white;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    transform: scale(1.05);
+  }
+  .noodle-narrow.active { 
+    background: #2196F3; /* 深蓝色 */
+    color: white;
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+    transform: scale(1.05);
+  }
 
   /* 数量 */
-  .quantity-control { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; justify-content: center; } /* 减少下边距 */
-  .quantity-control button { width: 40px; height: 40px; font-size: 1.4em; background: #2196F3; color: white; border: none; border-radius: 50%; }
+  .quantity-control { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; justify-content: center; }
+  .quantity-control button { 
+    width: 40px; 
+    height: 40px; 
+    font-size: 1.4em; 
+    background: #2196F3; 
+    color: white; 
+    border: none; 
+    border-radius: 50%; 
+    cursor: pointer;
+  }
   .quantity-display { font-size: 1.5em; min-width: 45px; text-align: center; }
 
   /* 操作按钮 */
   .action-buttons { display: flex; gap: 8px; }
-  .action-buttons button { flex: 1; padding: 8px; font-size: 0.9em; color: white; border: none; border-radius: 8px; font-weight: bold; }
-  .add-btn { background: #4CAF50; font-size: 1.1em; }
-  .clear-btn { background: #f44336; }
+  .action-buttons button { 
+    flex: 1; 
+    padding: 10px; 
+    font-size: 1em; 
+    color: white; 
+    border: none; 
+    border-radius: 10px; 
+    font-weight: bold; 
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .action-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .add-btn { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
+  .clear-btn { background: linear-gradient(135deg, #f44336, #C62828); }
 
-  /* 数据库连接状态栏 - 最小化，放在左下角 */
+  /* 数据库连接状态栏 - 最小化 */
   .db-status { 
     position: fixed; 
     bottom: 2px; 
@@ -147,9 +219,10 @@
       <button class="eat-btn eat-daobao" data-value="打包">打包</button>
     </div>
     
+    <!-- 修改：去掉方框选择，直接是按钮，通过颜色深浅表示选中 -->
     <div class="noodle-group">
-      <button class="noodle-btn active" data-value="宽面">宽面</button>
-      <button class="noodle-btn" data-value="细面">细面</button>
+      <button class="noodle-btn noodle-wide active" data-value="宽面">宽面</button>
+      <button class="noodle-btn noodle-narrow active" data-value="细面">细面</button>
     </div>
     
     <div class="quantity-control">
@@ -165,7 +238,7 @@
   </div>
 </div>
 
-<!-- 数据库连接状态 - 最小化放在左下角 -->
+<!-- 数据库连接状态 -->
 <div class="db-status" id="dbStatus">
   <span id="statusText">正在连接...</span>
 </div>
@@ -194,7 +267,6 @@ async function checkDbConnection() {
     statusElement.textContent = "连接中...";
     statusElement.className = "status-connecting";
     
-    // 测试数据库连接
     const { data, error } = await supabase
       .from('orders')
       .select('id')
@@ -226,7 +298,6 @@ async function syncOrderToDatabase(orderData) {
   }
   
   try {
-    // 添加时间戳
     orderData.created_at = new Date().toISOString();
     orderData.is_active = true;
     
@@ -253,14 +324,13 @@ async function syncOrderToDatabase(orderData) {
 // ========== 从数据库加载最近5分钟内的订单 ==========
 async function loadRecentOrders() {
   try {
-    // 计算5分钟前的时间
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .gte('created_at', fiveMinutesAgo)  // 只获取最近5分钟的订单
-      .order('created_at', { ascending: false });  // 按时间倒序排列
+      .gte('created_at', fiveMinutesAgo)
+      .order('created_at', { ascending: false });
     
     if (error) {
       console.error('加载订单失败:', error);
@@ -292,7 +362,6 @@ function createOrderElement(order) {
   orderDiv.className = "order-item";
   orderDiv.dataset.orderId = order.id;
   
-  // 解析订单数据
   const orderType = order.order_type || '堂食';
   const noodleType = order.noodle_type || { wide: true, narrow: false };
   const quantity = order.quantity || 1;
@@ -334,7 +403,7 @@ function createOrderElement(order) {
   return orderDiv;
 }
 
-// ========== 从前端移除订单（不影响数据库） ==========
+// ========== 从前端移除订单 ==========
 function removeOrderFromUI(button) {
   const orderElement = button.parentElement;
   orderElement.remove();
@@ -360,7 +429,6 @@ function updateDbStatus(message, type = 'info') {
       statusElement.className = "";
   }
   
-  // 2秒后恢复正常状态
   if (type === 'error' || type === 'info') {
     setTimeout(() => {
       if (isDbConnected) {
@@ -373,6 +441,7 @@ function updateDbStatus(message, type = 'info') {
 }
 
 // ========== 前端点单逻辑 ==========
+// 堂食/外卖/打包选择
 document.querySelectorAll('.eat-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.eat-btn').forEach(b => b.classList.remove('active'));
@@ -381,6 +450,7 @@ document.querySelectorAll('.eat-btn').forEach(btn => {
   });
 });
 
+// 宽面/细面选择 - 简化操作，点击切换选中状态
 document.querySelectorAll('.noodle-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     btn.classList.toggle('active');
@@ -392,7 +462,7 @@ function changeQty(delta) {
   document.getElementById('quantity').textContent = currentQty;
 }
 
-// ========== 添加订单（自动同步到数据库） ==========
+// ========== 添加订单 ==========
 async function addOrder() {
   if (currentQty < 1) return;
   
@@ -425,12 +495,11 @@ async function addOrder() {
   };
   
   const orderDiv = createOrderElement(tempOrder);
-  document.getElementById("orderList").appendChild(orderDiv); // 添加到末尾（向下排列）
+  document.getElementById("orderList").appendChild(orderDiv);
   
-  // 自动同步到数据库（后台执行）
+  // 自动同步到数据库
   syncOrderToDatabase(orderData).then(dbOrder => {
     if (dbOrder && dbOrder.id) {
-      // 更新DOM元素的数据库ID
       orderDiv.dataset.orderId = dbOrder.id;
       orderDiv.classList.add('synced');
       updateDbStatus('已保存', 'connected');
@@ -453,7 +522,7 @@ function generateDisplayText(type, wide, narrow, qty) {
   return text;
 }
 
-// ========== 清空前端列表（不影响数据库） ==========
+// ========== 清空前端列表 ==========
 function clearOrders() {
   if (confirm("确定清空前端所有订单？(数据库中的订单不会删除)")) {
     document.getElementById("orderList").innerHTML = "";
@@ -463,20 +532,15 @@ function clearOrders() {
 
 // ========== 页面初始化 ==========
 async function initPage() {
-  // 检查数据库连接
   await checkDbConnection();
   
   if (isDbConnected) {
-    // 加载最近5分钟内的订单
     const recentOrders = await loadRecentOrders();
     displayOrders(recentOrders);
-    updateDbStatus(`已加载`, 'info');
+    updateDbStatus(`已加载 ${recentOrders.length} 个`, 'info');
   }
   
-  // 每30秒检查一次数据库连接
   setInterval(checkDbConnection, 30000);
-  
-  // 每60秒自动刷新订单列表（可选）
   setInterval(async () => {
     if (isDbConnected) {
       const recentOrders = await loadRecentOrders();
